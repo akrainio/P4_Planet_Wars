@@ -88,7 +88,7 @@ if __name__ == '__main__':
     try:
         map_data = ''
         while True:
-            current_line = raw_input()
+            current_line = input()
             if len(current_line) >= 2 and current_line.startswith("go"):
                 planet_wars = PlanetWars(map_data)
                 do_turn(planet_wars)
