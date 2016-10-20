@@ -1,0 +1,12 @@
+# Created by .ignore support plugin (hsz.mobi)
+.gitignore
+.idea/
+run.py
+behavior_tree_bot/bt_bot.log
+log.txt
+opponent_bots/aggressive_bot.log
+opponent_bots/defensive_bot.log
+opponent_bots/easy_bot.log
+opponent_bots/production_bot.log
+opponent_bots/spread_bot.log
+
