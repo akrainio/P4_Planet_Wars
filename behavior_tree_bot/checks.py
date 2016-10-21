@@ -1,11 +1,9 @@
+from timeit import default_timer as time
 
 
-def if_neutral_planet_available(state):
-    return any(state.neutral_planets())
+def check_ships_available(state, data, parameters):
+    return data["num_available_ships"] > 0
 
 
-def have_largest_fleet(state):
-    return sum(planet.num_ships for planet in state.my_planets()) \
-             + sum(fleet.num_ships for fleet in state.my_fleets()) \
-           > sum(planet.num_ships for planet in state.enemy_planets()) \
-             + sum(fleet.num_ships for fleet in state.enemy_fleets())
+def check_time_remaining(state, data, parameters):
+    return time() - data["timer"] >= parameters["time"]
