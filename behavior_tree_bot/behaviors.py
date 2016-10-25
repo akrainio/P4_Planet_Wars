@@ -7,12 +7,17 @@ from queue import PriorityQueue
 
 
 def start_timer(state, data, parameters):
+    """
+        Starts the turn timer
+    """
     data["timer"] = time()
     return True
 
     
 def initialize_ships_and_deployments(state, data, parameters):
-    # initialize data elements    
+    """
+        Creates the available ship map and the deployment priority queue
+    """
     data["available_ships"] = {}
     data["deployments"] = PriorityQueue()
     
@@ -23,6 +28,11 @@ def initialize_ships_and_deployments(state, data, parameters):
 
 
 def find_focus_point(state, data, parameters):
+    """
+        Finds the central point of our currently held planets
+        Used to estimate distances when gauging targets
+        Calculation could be adjusted to prioritize planets differently
+    """
     data["focus_x"] = 0
     data["focus_y"] = 0  
     for planet in state.my_planets():
@@ -33,7 +43,10 @@ def find_focus_point(state, data, parameters):
     return True
 
 
-def assess_defense(state, data, parameters):
+def defense_strategy(state, data, parameters):
+    """
+        Adds defensive deployments to the deployment priority queue.
+    """
     for enemy_fleet in state.enemy_fleets():
         if enemy_fleet.destination_planet.owner == 1:
             pass
