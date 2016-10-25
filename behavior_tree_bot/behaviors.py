@@ -3,6 +3,7 @@ sys.path.insert(0, '../')
 from planet_wars import issue_order
 from math import inf
 from timeit import default_timer as time
+from queue import PriorityQueue
 
 
 def start_timer(state, data, parameters):
@@ -48,7 +49,7 @@ def deploy_fleet(state, data, parameters):
     deployments = data["deployments"]
     
     # all deployments processed, return false
-    if not deployments:
+    if deployments.empty():
         return False
     
     # get next deployment
