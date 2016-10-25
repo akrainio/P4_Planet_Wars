@@ -19,11 +19,14 @@ def setup_behavior_tree():
     # Top-down construction of behavior tree
     root = Sequence(name="Root")
     
-    startup_sequence = Sequence(child_nodes=[ Leaf(start_timer), Leaf(initialize_ships_and_deployments) ], name="Startup Sequence")
+    startup_sequence = Sequence(child_nodes=[ Leaf(start_timer), Leaf(initialize_ships_and_deployments), Leaf(find_focus_point) ], name="Startup Sequence")
+    
+    defense = Leaf(defense_strategy)
+    offense = Leaf(offense_strategy)
     
     deploy_loop = RepeatUntilFail(child_node=Leaf(deploy_fleet), name="Deployment Loop")
     
-    root.child_nodes = [ startup_sequence, deploy_loop ]
+    root.child_nodes = [ startup_sequence, defense, offense, deploy_loop ]
 
     logging.info('\n' + root.tree_to_string())
     return root
