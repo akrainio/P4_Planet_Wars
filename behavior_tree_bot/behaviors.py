@@ -10,9 +10,16 @@ from math import inf, sqrt
 from timeit import default_timer as time
 from queue import PriorityQueue
 
-defense_weight = 0
-offense_weight = 100
-offense_overkill = 10
+
+defense_weight = -10000
+offense_weight = 0
+offense_distance_factor = 4
+offense_growth_rate_factor = 6
+offense_aggressiveness_factor = 3
+offense_num_ship_factor = 0.9
+offense_cluster_factor = 1
+offense_growth_rate_0_score = 100000
+offense_overkill = 20
 
 
 def dist(x0, y0, x1, y1):
@@ -105,7 +112,7 @@ def defense_strategy(state, data, parameters):
     for enemy_fleet in state.enemy_fleets():
         planet = state.planets[enemy_fleet.destination_planet]
         if planet.owner == 1:
-            score = defense_weight + dist(data["focus_x"], planet.x, data["focus_y"], planet.y)
+            score = defense_weight - planet.growth_rate#dist(data["focus_x"], planet.x, data["focus_y"], planet.y)
             logging.info('\n' + "Defensive score: " + score.__str__())
             deployments.put((score, planet, enemy_fleet.num_ships))
     return True
@@ -114,19 +121,29 @@ def defense_strategy(state, data, parameters):
 def offense_strategy(state, data, parameters):
     deployments = data["deployments"]
     for planet in state.not_my_planets():
+        distance_score = offense_distance_factor * dist(data["focus_x"], planet.x, data["focus_y"], planet.y)
+        cluster_score = offense_cluster_factor * data["dist_table"][planet]
+        growth_score = -offense_growth_rate_factor * planet.growth_rate
+        
         num_ships = planet.num_ships + 1
         if planet.owner == 2:
-            num_ships += dist(data["focus_x"], planet.x, data["focus_y"],
-                              planet.y) * planet.growth_rate + offense_overkill
-        score = offense_weight + dist(data["focus_x"], planet.x, data["focus_y"],
-                                      planet.y) - planet.growth_rate + num_ships
+            num_ships += dist(data["focus_x"], planet.x, data["focus_y"], planet.y) * planet.growth_rate + offense_overkill
+            growth_score *= offense_aggressiveness_factor
 
+        ship_score = offense_num_ship_factor * num_ships
 
-        score = offense_weight + dist(data["focus_x"], planet.x, data["focus_y"],
-                                      planet.y) - planet.growth_rate + num_ships + data["dist_table"][planet]
+        if planet.growth_rate == 0:
+            score = offense_growth_rate_0_score
+        else:
+            score = distance_score + cluster_score + growth_score + ship_score
 
-        deployments.put((score, planet, num_ships))
-        logging.info('\n' + "Offensive score: " + score.__str__())
+        deployments.put( (score, planet, num_ships) )
+        
+        logging.info("distance score: " + str(distance_score))
+        logging.info("growth score: " + str(growth_score))
+        logging.info("cluster score: " + str(cluster_score))
+        logging.info("ship score: " + str(ship_score))
+        logging.info("total score: " + str(score))
     return True
 
 
@@ -146,6 +163,7 @@ def deploy_fleet(state, data, parameters):
     # get next deployment
     score, target, num_ships = deployments.get()
 
+    # not enough ships available, return false
     if num_ships > data["num_available_ships"]:
         return False
 
@@ -164,7 +182,7 @@ def deploy_fleet(state, data, parameters):
             ships.pop(target)
 
     # loop until ship requirement met
-    while num_ships > 0 and ships:
+    while num_ships > 0:
         # find closest planet with available ships
         closest_planet = None
         closest_planet_distance = inf
@@ -185,4 +203,5 @@ def deploy_fleet(state, data, parameters):
         if ships[closest_planet] <= 0:
             ships.pop(closest_planet)
 
+    # deployment
     return True
