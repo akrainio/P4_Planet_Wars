@@ -15,11 +15,11 @@ from planet_wars import PlanetWars, finish_turn
 
 # You have to improve this tree or create an entire new one that is capable of winning against all the 5 opponent bots
 def setup_behavior_tree():
-
     # Top-down construction of behavior tree
     root = Sequence(name="Root")
     
-    startup_sequence = Sequence(child_nodes=[ Leaf(start_timer), Leaf(initialize_ships_and_deployments), Leaf(find_focus_point) ], name="Startup Sequence")
+    startup_sequence = Sequence(child_nodes=[Leaf(start_timer), Leaf(initialize_ships_and_deployments), Leaf(find_focus_point),
+                                             Leaf(create_dist_table)], name="Startup Sequence")
     
     defense = Leaf(defense_strategy)
     offense = Leaf(offense_strategy)
