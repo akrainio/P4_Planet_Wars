@@ -11,15 +11,14 @@ from timeit import default_timer as time
 from queue import PriorityQueue
 
 
-defense_weight = -10000
-offense_weight = 0
-offense_distance_factor = 4
-offense_growth_rate_factor = 6
-offense_aggressiveness_factor = 3
-offense_num_ship_factor = 0.9
-offense_cluster_factor = 1
+defense_weight = 0
+offense_weight = 10000
+offense_distance_factor = 3
+offense_growth_rate_factor = 15
+offense_num_ship_factor = 1
+offense_cluster_factor = 0.5
 offense_growth_rate_0_score = 100000
-offense_overkill = 20
+offense_overkill = 10
 
 
 def dist(x0, y0, x1, y1):
@@ -61,7 +60,6 @@ def create_dist_table(state, data, parameters):
     """
     data["dist_table"] = {}
     for planet in state.not_my_planets():
-        quality = 0
         num_planets = 0
         dist_sum = 0
 
@@ -70,8 +68,7 @@ def create_dist_table(state, data, parameters):
             this_dist = 0
             if planet != other_planet:
                 this_dist = dist(planet.x, other_planet.x, planet.y, other_planet.y)
-                if this_dist <= 10:
-                    dist_sum += this_dist
+                dist_sum += this_dist
             return this_dist, num_planets, dist_sum
 
         for other_planet in state.neutral_planets():
@@ -97,8 +94,8 @@ def find_focus_point(state, data, parameters):
     data["focus_y"] = 0
     if len(state.my_planets()) > 0:
         for planet in state.my_planets():
-            data["focus_x"] += planet.x
-            data["focus_y"] += planet.y
+            data["focus_x"] += planet.x# * planet.growth_rate
+            data["focus_y"] += planet.y# * planet.growth_rate
         data["focus_x"] /= len(state.my_planets())
         data["focus_y"] /= len(state.my_planets())
     return True
@@ -112,7 +109,7 @@ def defense_strategy(state, data, parameters):
     for enemy_fleet in state.enemy_fleets():
         planet = state.planets[enemy_fleet.destination_planet]
         if planet.owner == 1:
-            score = defense_weight - planet.growth_rate#dist(data["focus_x"], planet.x, data["focus_y"], planet.y)
+            score = defense_weight + dist(data["focus_x"], planet.x, data["focus_y"], planet.y)
             logging.info('\n' + "Defensive score: " + score.__str__())
             deployments.put((score, planet, enemy_fleet.num_ships))
     return True
@@ -128,7 +125,6 @@ def offense_strategy(state, data, parameters):
         num_ships = planet.num_ships + 1
         if planet.owner == 2:
             num_ships += dist(data["focus_x"], planet.x, data["focus_y"], planet.y) * planet.growth_rate + offense_overkill
-            growth_score *= offense_aggressiveness_factor
 
         ship_score = offense_num_ship_factor * num_ships
 
